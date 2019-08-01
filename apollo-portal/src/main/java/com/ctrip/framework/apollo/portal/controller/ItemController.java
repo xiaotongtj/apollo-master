@@ -34,6 +34,7 @@ import java.util.Objects;
 
 import static com.ctrip.framework.apollo.common.utils.RequestPrecondition.checkModel;
 
+//添加配置项
 @RestController
 public class ItemController {
 
@@ -47,6 +48,7 @@ public class ItemController {
     this.permissionValidator = permissionValidator;
   }
 
+  //这里是修改的Item
   @PreAuthorize(value = "@permissionValidator.hasModifyNamespacePermission(#appId, #namespaceName, #env)")
   @PutMapping(value = "/apps/{appId}/envs/{env}/clusters/{clusterName}/namespaces/{namespaceName}/items", consumes = {
       "application/json"})
@@ -61,6 +63,7 @@ public class ItemController {
     configService.updateConfigItemByText(model);
   }
 
+  //创建配置项
   @PreAuthorize(value = "@permissionValidator.hasModifyNamespacePermission(#appId, #namespaceName, #env)")
   @PostMapping("/apps/{appId}/envs/{env}/clusters/{clusterName}/namespaces/{namespaceName}/item")
   public ItemDTO createItem(@PathVariable String appId, @PathVariable String env,
@@ -77,9 +80,11 @@ public class ItemController {
     item.setDataChangeCreatedTime(null);
     item.setDataChangeLastModifiedTime(null);
 
+    //保存 Item 到 Admin Service
     return configService.createItem(appId, Env.valueOf(env), clusterName, namespaceName, item);
   }
 
+  //更新item
   @PreAuthorize(value = "@permissionValidator.hasModifyNamespacePermission(#appId, #namespaceName, #env)")
   @PutMapping("/apps/{appId}/envs/{env}/clusters/{clusterName}/namespaces/{namespaceName}/item")
   public void updateItem(@PathVariable String appId, @PathVariable String env,

@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/openapi/v1/envs/{env}")
 public class ReleaseController {
 
+    //发布版本信息
   private final ReleaseService releaseService;
   private final UserService userService;
   private final NamespaceBranchService namespaceBranchService;
@@ -37,6 +38,7 @@ public class ReleaseController {
     this.namespaceBranchService = namespaceBranchService;
   }
 
+  //点击发布commit表
   @PreAuthorize(value = "@consumerPermissionValidator.hasReleaseNamespacePermission(#request, #appId, #namespaceName, #env)")
   @PostMapping(value = "/apps/{appId}/clusters/{clusterName}/namespaces/{namespaceName}/releases")
   public OpenReleaseDTO createRelease(@PathVariable String appId, @PathVariable String env,

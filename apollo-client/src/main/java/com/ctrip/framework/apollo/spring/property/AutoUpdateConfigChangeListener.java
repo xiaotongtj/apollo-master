@@ -1,16 +1,9 @@
 package com.ctrip.framework.apollo.spring.property;
 
 import com.ctrip.framework.apollo.ConfigChangeListener;
-import com.ctrip.framework.apollo.enums.PropertyChangeType;
-import com.ctrip.framework.apollo.model.ConfigChange;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
 import com.ctrip.framework.apollo.spring.util.SpringInjector;
 import com.google.gson.Gson;
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeConverter;
@@ -18,6 +11,11 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Create by zhangzheng on 2018/3/6
@@ -43,6 +41,7 @@ public class AutoUpdateConfigChangeListener implements ConfigChangeListener{
     this.gson = new Gson();
   }
 
+  //todo 监听配置更新
   @Override
   public void onChange(ConfigChangeEvent changeEvent) {
     Set<String> keys = changeEvent.changedKeys();
@@ -58,6 +57,7 @@ public class AutoUpdateConfigChangeListener implements ConfigChangeListener{
 
       // 2. update the value
       for (SpringValue val : targetValues) {
+          //todo 通过反射来更新该属性的值
         updateSpringValue(val);
       }
     }
@@ -65,6 +65,7 @@ public class AutoUpdateConfigChangeListener implements ConfigChangeListener{
 
   private void updateSpringValue(SpringValue springValue) {
     try {
+        //key value 进行更新
       Object value = resolvePropertyValue(springValue);
       springValue.update(value);
 

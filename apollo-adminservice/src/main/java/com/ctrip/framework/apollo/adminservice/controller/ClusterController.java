@@ -27,6 +27,7 @@ public class ClusterController {
     this.clusterService = clusterService;
   }
 
+  //portal 同步到admin中
   @PostMapping("/apps/{appId}/clusters")
   public ClusterDTO create(@PathVariable("appId") String appId,
                            @RequestParam(value = "autoCreatePrivateNamespace", defaultValue = "true") boolean autoCreatePrivateNamespace,

@@ -10,6 +10,7 @@ import com.ctrip.framework.apollo.configservice.service.ReleaseMessageServiceWit
 import com.ctrip.framework.apollo.configservice.service.config.ConfigService;
 import com.ctrip.framework.apollo.configservice.service.config.ConfigServiceWithCache;
 import com.ctrip.framework.apollo.configservice.service.config.DefaultConfigService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
@@ -31,7 +32,7 @@ public class ConfigServiceAutoConfiguration {
     return new GrayReleaseRulesHolder();
   }
 
-
+ //这里注册configService服务
   @Bean
   public ConfigService configService() {
     if (bizConfig.isConfigServiceCacheEnabled()) {
@@ -45,6 +46,7 @@ public class ConfigServiceAutoConfiguration {
     return (NoOpPasswordEncoder) NoOpPasswordEncoder.getInstance();
   }
 
+  //configService服务器进行扫描消息列表是否有数据
   @Configuration
   static class MessageScannerConfiguration {
     private final NotificationController notificationController;
@@ -69,8 +71,10 @@ public class ConfigServiceAutoConfiguration {
       this.configService = configService;
     }
 
+    //注册释放版本的消息扫描
     @Bean
     public ReleaseMessageScanner releaseMessageScanner() {
+        //提示：扫描到了，然后这里就需要知道有多少个监听者，注册多个监听器
       ReleaseMessageScanner releaseMessageScanner = new ReleaseMessageScanner();
       //0. handle release message cache
       releaseMessageScanner.addMessageListener(releaseMessageServiceWithCache);
@@ -79,7 +83,7 @@ public class ConfigServiceAutoConfiguration {
       //2. handle server cache
       releaseMessageScanner.addMessageListener(configService);
       releaseMessageScanner.addMessageListener(configFileController);
-      //3. notify clients
+      //3. notify clients //通知客户端
       releaseMessageScanner.addMessageListener(notificationControllerV2);
       releaseMessageScanner.addMessageListener(notificationController);
       return releaseMessageScanner;

@@ -29,6 +29,7 @@ public class AdminServiceAPI {
     }
   }
 
+  //这里的原因是，portal-->admin的请求都是http的请求
   @Service
   public static class AppAPI extends API {
 
@@ -161,6 +162,7 @@ public class AdminServiceAPI {
 
     }
 
+    //封装对 Admin Service 的 Item 模块的 API 调用
     public ItemDTO createItem(String appId, Env env, String clusterName, String namespace, ItemDTO item) {
       return restTemplate.post(env, "apps/{appId}/clusters/{clusterName}/namespaces/{namespaceName}/items",
           item, ItemDTO.class, appId, clusterName, namespace);
@@ -186,6 +188,7 @@ public class AdminServiceAPI {
           appId, clusterName);
     }
 
+    //进行校验
     public boolean isClusterUnique(String appId, Env env, String clusterName) {
       return restTemplate
           .get(env, "apps/{appId}/cluster/{clusterName}/unique", Boolean.class,
@@ -252,6 +255,7 @@ public class AdminServiceAPI {
       return releaseDTO;
     }
 
+    //发布Item
     public ReleaseDTO createRelease(String appId, Env env, String clusterName, String namespace,
         String releaseName, String releaseComment, String operator,
         boolean isEmergencyPublish) {

@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+//这里添加一个项目的controller
 
 @RestController
 @RequestMapping("/apps")
@@ -52,6 +53,9 @@ public class AppController {
   private final UserInfoHolder userInfoHolder;
   private final AppService appService;
   private final PortalSettings portalSettings;
+    /**
+     10:      * Spring 事件发布者
+     11:      */
   private final ApplicationEventPublisher publisher;
   private final RolePermissionService rolePermissionService;
   private final RoleInitializationService roleInitializationService;
@@ -113,8 +117,10 @@ public class AppController {
 
     App app = transformToApp(appModel);
 
+    //创建项目到portal本地的数据库中
     App createdApp = appService.createAppInLocal(app);
 
+    // 发布 AppCreationEvent 创建事件
     publisher.publishEvent(new AppCreationEvent(createdApp));
 
     Set<String> admins = appModel.getAdmins();

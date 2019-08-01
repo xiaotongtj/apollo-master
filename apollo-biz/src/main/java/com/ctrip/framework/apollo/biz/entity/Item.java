@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 
+//配置项key = value
 @Entity
 @Table(name = "Item")
 @SQLDelete(sql = "Update Item set isDeleted = 1 where id = ?")

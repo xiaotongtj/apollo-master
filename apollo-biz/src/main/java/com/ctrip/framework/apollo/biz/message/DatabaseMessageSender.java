@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * Admin Service在配置发布后会往ReleaseMessage表插入一条消息记录，
  *              消息内容就是配置发布的AppId+Cluster+Namespace
+ *
+ *     admin-->发送消息-->config
  */
 @Component
 public class DatabaseMessageSender implements MessageSender {
@@ -51,11 +53,14 @@ public class DatabaseMessageSender implements MessageSender {
       return;
     }
 
+    //2pc提交
     Tracer.logEvent("Apollo.AdminService.ReleaseMessage", message);
     Transaction transaction = Tracer.newTransaction("Apollo.AdminService", "sendMessage");
     try {
+
+        //把发送配置Item的信息，存入一个堵塞队列中
       ReleaseMessage newMessage = releaseMessageRepository.save(new ReleaseMessage(message));
-      toClean.offer(newMessage.getId());
+      toClean.offer(newMessage.getId()); //作为缓存--->DB
       transaction.setStatus(Transaction.SUCCESS);
     } catch (Throwable ex) {
       logger.error("Sending message to database failed", ex);
@@ -66,6 +71,7 @@ public class DatabaseMessageSender implements MessageSender {
     }
   }
 
+  //有后台任务不断清理旧的 ReleaseMessage 记录
   @PostConstruct
   private void initialize() {
     cleanExecutorService.submit(() -> {

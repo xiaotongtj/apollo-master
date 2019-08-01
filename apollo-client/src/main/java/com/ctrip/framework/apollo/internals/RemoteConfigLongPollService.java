@@ -46,6 +46,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Jason Song(song_s@ctrip.com)
+ *
+ * 客户端发起的long poll 请求
  */
 public class RemoteConfigLongPollService {
   private static final Logger logger = LoggerFactory.getLogger(RemoteConfigLongPollService.class);
@@ -122,6 +124,7 @@ public class RemoteConfigLongPollService {
               //ignore
             }
           }
+          //todo client -->config 建立long polling 长链接--》notificationControllerV2
           doLongPollingRefresh(appId, cluster, dataCenter);
         }
       });
@@ -157,6 +160,7 @@ public class RemoteConfigLongPollService {
           lastServiceDto = configServices.get(random.nextInt(configServices.size()));
         }
 
+        //notifications/v2
         url =
             assembleLongPollRefreshUrl(lastServiceDto.getHomepageUrl(), appId, cluster, dataCenter,
                 m_notifications);
@@ -167,6 +171,7 @@ public class RemoteConfigLongPollService {
 
         transaction.addData("Url", url);
 
+        //这里开始请求并堵塞
         final HttpResponse<List<ApolloConfigNotification>> response =
             m_httpUtil.doGet(request, m_responseType);
 
@@ -221,6 +226,7 @@ public class RemoteConfigLongPollService {
           .get(String.format("%s.%s", namespaceName, ConfigFileFormat.Properties.getValue())));
       for (RemoteConfigRepository remoteConfigRepository : toBeNotified) {
         try {
+            //当长轮询到配置更新时，发起同步配置的任务
           remoteConfigRepository.onLongPollNotified(lastServiceDto, remoteMessages);
         } catch (Throwable ex) {
           Tracer.logError(ex);

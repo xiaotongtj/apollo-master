@@ -35,6 +35,7 @@ public class ItemSetService {
     return updateSet(namespace.getAppId(), namespace.getClusterName(), namespace.getNamespaceName(), changeSets);
   }
 
+  //更新Item项
   @Transactional
   public ItemChangeSets updateSet(String appId, String clusterName,
                                   String namespaceName, ItemChangeSets changeSet) {
@@ -92,6 +93,7 @@ public class ItemSetService {
 
   }
 
+  // 创建 Commit 对象，并保存
   private void createCommit(String appId, String clusterName, String namespaceName, String configChangeContent,
                             String operator) {
 

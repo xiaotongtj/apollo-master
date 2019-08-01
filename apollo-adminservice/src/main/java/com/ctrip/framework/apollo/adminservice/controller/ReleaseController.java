@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+//portal->admin 端接收Item发送消息
 @RestController
 public class ReleaseController {
 
@@ -98,6 +99,7 @@ public class ReleaseController {
     return BeanUtils.transform(ReleaseDTO.class, release);
   }
 
+  //发布消息
   //apps/apollo-java/envs/DEV/clusters/default/namespaces/application/releases
   @Transactional
   @PostMapping("/apps/{appId}/clusters/{clusterName}/namespaces/{namespaceName}/releases")
@@ -123,6 +125,7 @@ public class ReleaseController {
     } else {
       messageCluster = clusterName;
     }
+    //todo 发布消息
     messageSender.sendMessage(ReleaseMessageKeyGenerator.generate(appId, messageCluster, namespaceName),
                               Topics.APOLLO_RELEASE_TOPIC);
     return BeanUtils.transform(ReleaseDTO.class, release);

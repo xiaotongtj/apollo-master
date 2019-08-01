@@ -63,10 +63,13 @@ public class ItemService {
     long namespaceId = model.getNamespaceId();
     String configText = model.getConfigText();
 
+    //配置文本解析器，properties | fileText
     ConfigTextResolver resolver =
         model.getFormat() == ConfigFileFormat.Properties ? propertyResolver : fileTextResolver;
 
+    //会进行比对，然后存储变化的数据值
     ItemChangeSets changeSets = resolver.resolve(namespaceId, configText,
+        //这里要查询原来的数据
         itemAPI.findItems(appId, env, clusterName, namespaceName));
     if (changeSets.isEmpty()) {
       return;

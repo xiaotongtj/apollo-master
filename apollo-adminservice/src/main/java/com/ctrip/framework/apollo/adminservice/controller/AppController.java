@@ -22,6 +22,11 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Objects;
 
+//存储创建的app  portal--->admin 这里是通过listener ->restful传递过来
+
+/**
+ * 存在的问题：跨系统之间，网络异常导致portal 成功 admin保存失败如何处理
+ */
 @RestController
 public class AppController {
 
@@ -41,6 +46,7 @@ public class AppController {
       throw new BadRequestException("app already exist.");
     }
 
+    //保存到数据库中
     entity = adminService.createNewApp(entity);
 
     return BeanUtils.transform(AppDTO.class, entity);

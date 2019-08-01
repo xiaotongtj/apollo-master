@@ -53,6 +53,7 @@ import java.util.function.Function;
 @RequestMapping("/notifications/v2")
 public class NotificationControllerV2 implements ReleaseMessageListener {
   private static final Logger logger = LoggerFactory.getLogger(NotificationControllerV2.class);
+    //这里可以key相同，value不同会进行合并操作
   private final Multimap<String, DeferredResultWrapper> deferredResults =
       Multimaps.synchronizedSetMultimap(HashMultimap.create());
   private static final Splitter STRING_SPLITTER =
@@ -87,7 +88,7 @@ public class NotificationControllerV2 implements ReleaseMessageListener {
     this.gson = gson;
     this.bizConfig = bizConfig;
   }
-  //这里没有路由
+  //这里没有路由 client和serviceConfig建立poll long
   @GetMapping
   public DeferredResult<ResponseEntity<List<ApolloConfigNotification>>> pollNotification(
       @RequestParam(value = "appId") String appId,
@@ -108,6 +109,7 @@ public class NotificationControllerV2 implements ReleaseMessageListener {
       throw new BadRequestException("Invalid format of notifications: " + notificationsAsString);
     }
 
+    //包装的DeferredResultWrapper
     DeferredResultWrapper deferredResultWrapper = new DeferredResultWrapper();
     Set<String> namespaces = Sets.newHashSet();
     Map<String, Long> clientSideNotifications = Maps.newHashMap();
@@ -176,6 +178,7 @@ public class NotificationControllerV2 implements ReleaseMessageListener {
             latestReleaseMessages);
 
     if (!CollectionUtils.isEmpty(newNotifications)) {
+        //返回通知
       deferredResultWrapper.setResult(newNotifications);
     }
 
@@ -241,6 +244,7 @@ public class NotificationControllerV2 implements ReleaseMessageListener {
     return newNotifications;
   }
 
+  //通知客户端
   @Override
   public void handleMessage(ReleaseMessage message, String channel) {
     logger.info("message received - channel: {}, message: {}", channel, message);
@@ -258,11 +262,12 @@ public class NotificationControllerV2 implements ReleaseMessageListener {
       return;
     }
 
+    //一开始存储了所有的namespace信息
     if (!deferredResults.containsKey(content)) {
       return;
     }
 
-    //create a new list to avoid ConcurrentModificationException
+    //create a new list to avoid ConcurrentModificationException 通过content区分
     List<DeferredResultWrapper> results = Lists.newArrayList(deferredResults.get(content));
 
     ApolloConfigNotification configNotification = new ApolloConfigNotification(changedNamespace, message.getId());
@@ -283,6 +288,7 @@ public class NotificationControllerV2 implements ReleaseMessageListener {
             }
           }
           logger.debug("Async notify {}", results.get(i));
+            //发布通知到client
           results.get(i).setResult(configNotification);
         }
       });
@@ -292,6 +298,7 @@ public class NotificationControllerV2 implements ReleaseMessageListener {
     logger.debug("Notify {} clients for key {}", results.size(), content);
 
     for (DeferredResultWrapper result : results) {
+        //这个时间就开始返回了
       result.setResult(configNotification);
     }
     logger.debug("Notification completed");

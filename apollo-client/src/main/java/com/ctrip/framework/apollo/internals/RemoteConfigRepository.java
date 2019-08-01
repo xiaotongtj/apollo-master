@@ -1,19 +1,5 @@
 package com.ctrip.framework.apollo.internals;
 
-import com.ctrip.framework.apollo.enums.ConfigSourceType;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.ctrip.framework.apollo.Apollo;
 import com.ctrip.framework.apollo.build.ApolloInjector;
 import com.ctrip.framework.apollo.core.ConfigConsts;
@@ -23,6 +9,7 @@ import com.ctrip.framework.apollo.core.dto.ServiceDTO;
 import com.ctrip.framework.apollo.core.schedule.ExponentialSchedulePolicy;
 import com.ctrip.framework.apollo.core.schedule.SchedulePolicy;
 import com.ctrip.framework.apollo.core.utils.ApolloThreadFactory;
+import com.ctrip.framework.apollo.enums.ConfigSourceType;
 import com.ctrip.framework.apollo.exceptions.ApolloConfigException;
 import com.ctrip.framework.apollo.exceptions.ApolloConfigStatusCodeException;
 import com.ctrip.framework.apollo.tracer.Tracer;
@@ -40,6 +27,18 @@ import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Jason Song(song_s@ctrip.com)
@@ -128,18 +127,21 @@ public class RemoteConfigRepository extends AbstractConfigRepository {
         m_configUtil.getRefreshIntervalTimeUnit());
   }
 
+  //同步配置信息
   @Override
   protected synchronized void sync() {
     Transaction transaction = Tracer.newTransaction("Apollo.ConfigService", "syncRemoteConfig");
 
     try {
       ApolloConfig previous = m_configCache.get();
+        //配置信息
       ApolloConfig current = loadApolloConfig();
 
       //reference equals means HTTP 304
       if (previous != current) {
         logger.debug("Remote Config refreshed!");
         m_configCache.set(current);
+          // 发布 Repository 的配置发生变化，触发对应的监听器们
         this.fireRepositoryChange(m_namespace, this.getConfig());
       }
 
@@ -179,6 +181,7 @@ public class RemoteConfigRepository extends AbstractConfigRepository {
     long onErrorSleepTime = 0; // 0 means no sleep
     Throwable exception = null;
 
+    //所有的configService服务
     List<ServiceDTO> configServices = getConfigServices();
     String url = null;
     for (int i = 0; i < maxRetries; i++) {
@@ -305,6 +308,7 @@ public class RemoteConfigRepository extends AbstractConfigRepository {
   }
 
   public void onLongPollNotified(ServiceDTO longPollNotifiedServiceDto, ApolloNotificationMessages remoteMessages) {
+      // 设置长轮询到配置更新的 Config Service 。下次同步配置时，优先读取该服务
     m_longPollServiceDto.set(longPollNotifiedServiceDto);
     m_remoteMessages.set(remoteMessages);
     m_executorService.submit(new Runnable() {

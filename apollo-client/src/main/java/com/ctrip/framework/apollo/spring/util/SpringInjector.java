@@ -10,6 +10,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
+//基于Guice的Ioc容器
 public class SpringInjector {
   private static volatile Injector s_injector;
   private static final Object lock = new Object();
@@ -19,6 +20,7 @@ public class SpringInjector {
       synchronized (lock) {
         if (s_injector == null) {
           try {
+              //创建一个容器
             s_injector = Guice.createInjector(new SpringModule());
           } catch (Throwable ex) {
             ApolloConfigException exception = new ApolloConfigException("Unable to initialize Apollo Spring Injector!", ex);
@@ -43,6 +45,7 @@ public class SpringInjector {
   }
 
   private static class SpringModule extends AbstractModule {
+      //现在注入到里面，这三个类需要提前加载到Guice容器内，且只能引入这三个依赖
     @Override
     protected void configure() {
       bind(PlaceholderHelper.class).in(Singleton.class);

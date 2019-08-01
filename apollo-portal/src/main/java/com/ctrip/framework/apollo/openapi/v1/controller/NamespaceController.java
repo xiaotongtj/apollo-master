@@ -54,6 +54,8 @@ public class NamespaceController {
   }
 
 
+  //@PreAuthorize(...) 注解，调用 PermissionValidator#hasCreateAppNamespacePermission(appId, appNamespace)
+  //方法，校验是否有创建 AppNamespace 的权限
   @PreAuthorize(value = "@consumerPermissionValidator.hasCreateNamespacePermission(#request, #appId)")
   @PostMapping(value = "/openapi/v1/apps/{appId}/appnamespaces")
   public OpenAppNamespaceDTO createNamespace(@PathVariable String appId,
@@ -85,6 +87,7 @@ public class NamespaceController {
     AppNamespace appNamespace = OpenApiBeanUtils.transformToAppNamespace(appNamespaceDTO);
     AppNamespace createdAppNamespace = appNamespaceService.createAppNamespaceInLocal(appNamespace, appNamespaceDTO.isAppendNamespacePrefix());
 
+    //事件监听-->事件而言 发布 AppNamespaceCreationEvent 创建事件
     publisher.publishEvent(new AppNamespaceCreationEvent(createdAppNamespace));
 
     return OpenApiBeanUtils.transformToOpenAppNamespaceDTO(createdAppNamespace);

@@ -30,6 +30,7 @@ public class ReleaseMessageScanner implements InitializingBean {
   @Autowired
   private ReleaseMessageRepository releaseMessageRepository;
   private int databaseScanInterval;
+  //增加所有的监听器
   private List<ReleaseMessageListener> listeners;
   private ScheduledExecutorService executorService;
   private long maxIdScanned;
@@ -47,7 +48,7 @@ public class ReleaseMessageScanner implements InitializingBean {
     executorService.scheduleWithFixedDelay((Runnable) () -> {
       Transaction transaction = Tracer.newTransaction("Apollo.ReleaseMessageScanner", "scanMessage");
       try {
-        //扫描消息表里是否有消息
+        //扫描消息表里是否有消息(进行扫码消息是否存在)
         scanMessages();
         transaction.setStatus(Transaction.SUCCESS);
       } catch (Throwable ex) {
@@ -83,6 +84,7 @@ public class ReleaseMessageScanner implements InitializingBean {
   /**
    * scan messages and send
    *
+   * 这里进行扫描message表的数据，然后去通知监听器
    * @return whether there are more messages
    */
   private boolean scanAndSendMessages() {
@@ -113,8 +115,10 @@ public class ReleaseMessageScanner implements InitializingBean {
    */
   private void fireMessageScanned(List<ReleaseMessage> messages) {
     for (ReleaseMessage message : messages) {
+        //这里其实有所有的监听器
       for (ReleaseMessageListener listener : listeners) {
         try {
+            //通知监听器
           listener.handleMessage(message, Topics.APOLLO_RELEASE_TOPIC);
         } catch (Throwable ex) {
           Tracer.logError(ex);

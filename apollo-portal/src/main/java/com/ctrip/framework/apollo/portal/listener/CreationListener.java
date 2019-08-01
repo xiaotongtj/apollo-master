@@ -32,6 +32,7 @@ public class CreationListener {
     this.namespaceAPI = namespaceAPI;
   }
 
+  //监听创建项目的事件
   @EventListener
   public void onAppCreationEvent(AppCreationEvent event) {
     AppDTO appDTO = BeanUtils.transform(AppDTO.class, event.getApp());
